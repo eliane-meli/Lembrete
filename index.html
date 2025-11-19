@@ -560,6 +560,121 @@
             color: #666;
             white-space: nowrap;
         }
+
+        /* ========== NOVA BARRA DE NOTIFICAÇÃO INFERIOR ========== */
+        .notebook-notification-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            color: white;
+            padding: 12px 20px;
+            z-index: 2147483645;
+            box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.4s ease;
+            transform: translateY(100%);
+            pointer-events: auto;
+        }
+
+        .notebook-notification-bar.active {
+            transform: translateY(0);
+        }
+
+        .notebook-notification-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .notebook-notification-icon {
+            font-size: 1.5em;
+            animation: bellRing 2s infinite;
+        }
+
+        @keyframes bellRing {
+            0%, 50%, 100% { transform: rotate(0); }
+            5%, 15% { transform: rotate(15deg); }
+            10%, 20% { transform: rotate(-15deg); }
+        }
+
+        .notebook-notification-text {
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .notebook-notification-time {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .notebook-notification-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .notebook-notification-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .notebook-notification-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .notebook-notification-btn.primary {
+            background: #2ecc71;
+        }
+
+        .notebook-notification-btn.primary:hover {
+            background: #27ae60;
+        }
+
+        .notebook-notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3em;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .notebook-notification-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .notification-indicator {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 16px;
+            height: 16px;
+            background: #e74c3c;
+            border-radius: 50%;
+            z-index: 2147483646;
+            animation: pulse 1.5s infinite;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -581,6 +696,7 @@
         
         <div class="controls">
             <button id="overlayToggle" class="btn overlay-toggle">Modo Sobreposição</button>
+            <button id="testNotification" class="btn test-notification">Testar Notificação</button>
             <button id="resetAll" class="btn reset-btn">Reiniciar Todas</button>
         </div>
         
@@ -644,6 +760,27 @@
         </div>
     </div>
 
+    <!-- ========== NOVA BARRA DE NOTIFICAÇÃO INFERIOR ========== -->
+    <div id="notebookNotificationBar" class="notebook-notification-bar">
+        <div class="notebook-notification-content">
+            <div class="notebook-notification-icon">🔔</div>
+            <div class="notebook-notification-text" id="notebookNotificationText">
+                Nenhuma atividade no momento
+            </div>
+            <div class="notebook-notification-time" id="notebookNotificationTime">
+                --:--
+            </div>
+        </div>
+        <div class="notebook-notification-actions">
+            <button class="notebook-notification-btn" id="notebookSnoozeBtn">Adiar</button>
+            <button class="notebook-notification-btn primary" id="notebookConfirmBtn">Confirmar</button>
+            <button class="notebook-notification-close" id="notebookCloseBtn">×</button>
+        </div>
+    </div>
+
+    <!-- Indicador de notificação (pequeno ponto vermelho) -->
+    <div id="notificationIndicator" class="notification-indicator"></div>
+
     <script>
         // Configurações da Planilha Google
         const SHEET_ID = '1KTdETwaRMczOTOuyIDHAODp4mNmETxDQTs0RGrSNxfI';
@@ -651,11 +788,16 @@
         
         // Dados das atividades do arquivo CSV
         const activities = [
-            { name: "Envio de report's", time: "23:00" },
             { name: "Preencher mantra", time: "23:15" },
+            { name: "Envio de report's", time: "23:20" },
+            { name: "Preencher Reunião Diária Mantra TL's", time: "23:30" },
+            { name: "Preencher Rotinas", time: "23:40" },
+            { name: "Verificar Matrix e Planilha de desligados(Manutenção dos dados)", time: "01:00" },
+            { name: "Verificar Reuniões de Piso", time: "01:30" },
             { name: "Preencher mantra Inbound", time: "04:30" },
             { name: "Verificar e-mails importantes", time: "05:00" },
             { name: "Fazer feedback", time: "05:15" },
+            { name: "Preencher mantra", time: "05:59" },
             { name: "Preencher mantra", time: "06:08" }
         ];
 
@@ -671,6 +813,7 @@
         const snoozeBtn = document.getElementById('snoozeBtn');
         const resetAllBtn = document.getElementById('resetAll');
         const overlayToggle = document.getElementById('overlayToggle');
+        const testNotificationBtn = document.getElementById('testNotification');
         const markCompletedCheckbox = document.getElementById('markCompleted');
         const closeBtn = document.getElementById('closeBtn');
 
@@ -683,6 +826,15 @@
         const closeFloatingBtn = document.getElementById('closeFloatingBtn');
         const floatingTitleText = document.querySelector('.floating-title-text');
 
+        // Elementos para a nova barra de notificação
+        const notebookNotificationBar = document.getElementById('notebookNotificationBar');
+        const notebookNotificationText = document.getElementById('notebookNotificationText');
+        const notebookNotificationTime = document.getElementById('notebookNotificationTime');
+        const notebookSnoozeBtn = document.getElementById('notebookSnoozeBtn');
+        const notebookConfirmBtn = document.getElementById('notebookConfirmBtn');
+        const notebookCloseBtn = document.getElementById('notebookCloseBtn');
+        const notificationIndicator = document.getElementById('notificationIndicator');
+
         // Estado da aplicação
         let currentActivity = null;
         let timers = [];
@@ -692,6 +844,7 @@
         const AUTO_REMINDER_INTERVAL = 2 * 60 * 1000;
         let isFloatingMinimized = false;
         let isOverlayMode = false;
+        let notebookNotificationTimer = null;
 
         // Inicialização
         function init() {
@@ -704,6 +857,9 @@
             requestNotificationPermission();
             updateSystemStatus();
             updateFloatingReminder();
+            
+            // Iniciar atualização periódica do status
+            setInterval(updateSystemStatus, 60000);
         }
 
         // ========== FUNÇÕES DE SINCRONIZAÇÃO COM GOOGLE SHEETS ==========
@@ -1100,6 +1256,9 @@
             playNotificationSound();
             startAutoReminder();
             
+            // Mostrar também na barra de notificação do notebook
+            showNotebookNotification(activity);
+            
             if (!document.hasFocus()) {
                 showBrowserNotification(activity, false);
             }
@@ -1139,6 +1298,9 @@
                     reminderCount++;
                     updateNotificationContent();
                     playNotificationSound();
+                    
+                    // Atualizar também a barra de notificação do notebook
+                    updateNotebookNotification();
                     
                     if (!document.hasFocus()) {
                         showBrowserNotification(currentActivity, true);
@@ -1210,6 +1372,66 @@
             }
         }
 
+        // ========== NOVAS FUNÇÕES PARA A BARRA DE NOTIFICAÇÃO DO NOTEBOOK ==========
+
+        // Mostra notificação na barra inferior
+        function showNotebookNotification(activity) {
+            notebookNotificationText.textContent = activity.name;
+            notebookNotificationTime.textContent = activity.time;
+            
+            // Ativar a barra de notificação
+            notebookNotificationBar.classList.add('active');
+            
+            // Mostrar indicador de notificação
+            notificationIndicator.style.display = 'block';
+            
+            // Configurar timer para auto-esconder após 30 segundos se não interagir
+            if (notebookNotificationTimer) {
+                clearTimeout(notebookNotificationTimer);
+            }
+            
+            notebookNotificationTimer = setTimeout(() => {
+                if (notebookNotificationBar.classList.contains('active')) {
+                    hideNotebookNotification();
+                }
+            }, 30000);
+        }
+
+        // Atualiza a notificação na barra (para lembretes repetidos)
+        function updateNotebookNotification() {
+            if (currentActivity) {
+                let message = currentActivity.name;
+                if (reminderCount > 0) {
+                    message += ` (Lembrete ${reminderCount + 1})`;
+                }
+                
+                notebookNotificationText.textContent = message;
+                notebookNotificationTime.textContent = currentActivity.time;
+                
+                // Reiniciar timer de auto-esconder
+                if (notebookNotificationTimer) {
+                    clearTimeout(notebookNotificationTimer);
+                }
+                
+                notebookNotificationTimer = setTimeout(() => {
+                    if (notebookNotificationBar.classList.contains('active')) {
+                        hideNotebookNotification();
+                    }
+                }, 30000);
+            }
+        }
+
+        // Esconde a notificação da barra
+        function hideNotebookNotification() {
+            notebookNotificationBar.classList.remove('active');
+            notificationIndicator.style.display = 'none';
+            
+            if (notebookNotificationTimer) {
+                clearTimeout(notebookNotificationTimer);
+                notebookNotificationTimer = null;
+            }
+        }
+
         // Configura os event listeners
         function setupEventListeners() {
             // Confirmar atividade E SINCRONIZAR
@@ -1233,11 +1455,13 @@
                     }
                 }
                 hideNotification();
+                hideNotebookNotification();
             });
             
             // Outros event listeners
             snoozeBtn.addEventListener('click', () => {
                 hideNotification();
+                hideNotebookNotification();
                 snoozeTimer = setTimeout(() => {
                     if (currentActivity && !currentActivity.completed) {
                         showNotification(currentActivity);
@@ -1254,11 +1478,17 @@
                     renderActivities();
                     setupTimers();
                     hideNotification();
+                    hideNotebookNotification();
                 }
             });
 
             overlayToggle.addEventListener('click', toggleOverlayMode);
             closeBtn.addEventListener('click', hideNotification);
+            
+            testNotificationBtn.addEventListener('click', () => {
+                const testActivity = activities[0];
+                showNotification(testActivity);
+            });
 
             minimizeBtn.addEventListener('click', toggleFloatingReminder);
             closeFloatingBtn.addEventListener('click', () => {
@@ -1269,6 +1499,42 @@
                 if (isFloatingMinimized) {
                     toggleFloatingReminder();
                 }
+            });
+
+            // Event listeners para a barra de notificação do notebook
+            notebookConfirmBtn.addEventListener('click', async () => {
+                if (currentActivity) {
+                    // Marcar como concluído localmente
+                    currentActivity.completed = true;
+                    saveCompletedActivities();
+                    renderActivities();
+                    setupTimers();
+                    
+                    // Tentar sincronizar com Google Sheets
+                    const syncSuccess = await updateGoogleSheet(currentActivity);
+                    
+                    if (syncSuccess) {
+                        console.log(`Atividade concluída e sincronizada: ${currentActivity.name}`);
+                    } else {
+                        console.log(`Atividade concluída localmente: ${currentActivity.name}`);
+                    }
+                }
+                hideNotification();
+                hideNotebookNotification();
+            });
+
+            notebookSnoozeBtn.addEventListener('click', () => {
+                hideNotification();
+                hideNotebookNotification();
+                snoozeTimer = setTimeout(() => {
+                    if (currentActivity && !currentActivity.completed) {
+                        showNotification(currentActivity);
+                    }
+                }, 5 * 60 * 1000);
+            });
+
+            notebookCloseBtn.addEventListener('click', () => {
+                hideNotebookNotification();
             });
 
             setInterval(updateFloatingReminder, 60000);
