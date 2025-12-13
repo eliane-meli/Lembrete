@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lembretes de Atividades Diárias</title>
+    <title>Sistema de Lembretes - FUNCIONANDO</title>
     <style>
         * {
             margin: 0;
@@ -12,1584 +12,908 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        /* Estilo para modo sobreposto */
-        body.overlay-mode {
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 2147483647;
-            pointer-events: none;
-        }
-        
-        .overlay-backdrop {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.01);
-            z-index: -1;
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-            pointer-events: auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
         }
         
-        body.overlay-mode .container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 2px solid #3498db;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        }
-        
-        h1 {
+        .header {
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px;
             text-align: center;
-            margin-bottom: 20px;
-            color: #2c3e50;
         }
         
-        .activities-list {
-            margin-bottom: 30px;
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .controls {
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .activity-list {
+            padding: 0;
+            max-height: 500px;
+            overflow-y: auto;
         }
         
         .activity-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px 15px;
+            padding: 18px 25px;
             border-bottom: 1px solid #eee;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            background: white;
         }
         
         .activity-item:hover {
-            background-color: #f9f9f9;
+            background: #f8f9fa;
+            transform: translateX(10px);
         }
         
         .activity-item.completed {
-            background-color: #e8f5e9;
+            background: #e8f5e9;
             text-decoration: line-through;
-            color: #4caf50;
-        }
-        
-        .activity-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
+            color: #27ae60;
+            border-left: 5px solid #2ecc71;
         }
         
         .activity-time {
             font-weight: bold;
             color: #3498db;
-            margin-right: 15px;
-            min-width: 60px;
+            min-width: 90px;
+            font-size: 1.2em;
+            text-align: center;
+            background: #e8f4fd;
+            padding: 8px 12px;
+            border-radius: 6px;
         }
         
         .activity-name {
             flex: 1;
-        }
-        
-        .activity-checkbox {
-            margin-left: 15px;
+            margin: 0 20px;
+            font-size: 1.1em;
         }
         
         .activity-checkbox input {
-            transform: scale(1.3);
-            accent-color: #3498db;
+            transform: scale(1.8);
             cursor: pointer;
+            accent-color: #3498db;
         }
         
-        .notification {
+        /* NOTIFICAÇÃO SOBREPOSTA */
+        .notification-overlay {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 380px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            padding: 25px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2147483647;
             display: none;
-            z-index: 10000;
-            animation: slideIn 0.5s ease-out;
-            border-left: 6px solid #3498db;
-            pointer-events: auto;
+            justify-content: center;
+            align-items: center;
         }
         
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px) scale(0.9);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0) scale(1);
-                opacity: 1;
-            }
+        .notification-box {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.5s;
+            border-top: 10px solid #3498db;
         }
         
-        .notification.active {
-            display: block;
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
         
         .notification-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 18px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #f0f0f0;
         }
         
         .notification-title {
-            font-weight: bold;
+            font-size: 1.8em;
             color: #2c3e50;
-            font-size: 1.3em;
+            font-weight: bold;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
         .notification-time {
-            font-size: 0.95em;
-            color: #7f8c8d;
-            background: #f8f9fa;
-            padding: 6px 12px;
-            border-radius: 6px;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
             font-weight: bold;
+            font-size: 1.2em;
         }
         
         .notification-message {
-            margin-bottom: 22px;
-            color: #34495e;
-            font-size: 1.15em;
+            font-size: 1.4em;
             line-height: 1.5;
-            padding: 10px;
+            margin: 25px 0;
+            padding: 25px;
             background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 3px solid #3498db;
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+            text-align: center;
         }
         
         .notification-actions {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            font-size: 1em;
-            min-width: 100px;
-        }
-        
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
-        }
-        
-        .btn-secondary {
-            background-color: #e0e0e0;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #d0d0d0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-        
-        .status-pending {
-            background-color: #f39c12;
-        }
-        
-        .status-completed {
-            background-color: #2ecc71;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 10px;
-        }
-        
-        .test-notification {
-            background-color: #9b59b6;
-            color: white;
-        }
-        
-        .test-notification:hover {
-            background-color: #8e44ad;
-        }
-        
-        .reset-btn {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .reset-btn:hover {
-            background-color: #c0392b;
-        }
-
-        .overlay-toggle {
-            background-color: #2ecc71;
-            color: white;
-        }
-
-        .overlay-toggle:hover {
-            background-color: #27ae60;
-        }
-        
-        .auto-reminder-info {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #7f8c8d;
-            font-style: italic;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px dashed #ddd;
-        }
-        
-        .urgent {
-            border-left-color: #e74c3c !important;
-            animation: pulse 1.2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { 
-                box-shadow: 0 8px 30px rgba(231, 76, 60, 0.4);
-            }
-            50% { 
-                box-shadow: 0 12px 40px rgba(231, 76, 60, 0.7);
-                transform: scale(1.03);
-            }
-            100% { 
-                box-shadow: 0 8px 30px rgba(231, 76, 60, 0.4);
-            }
-        }
-        
-        .check-option {
-            display: flex;
-            align-items: center;
-            margin: 18px 0;
-            padding: 14px;
-            background: #f0f7ff;
-            border-radius: 8px;
-            border: 1px solid #d1e7ff;
-        }
-        
-        .check-option input {
-            margin-right: 12px;
-            transform: scale(1.4);
-            accent-color: #3498db;
-        }
-        
-        .check-option label {
-            font-size: 1em;
-            color: #2c3e50;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .notification-counter {
-            display: inline-flex;
-            align-items: center;
+            gap: 15px;
             justify-content: center;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            line-height: 24px;
-            font-size: 0.85em;
-            font-weight: bold;
+            margin-top: 30px;
         }
         
-        .notification-icon {
-            font-size: 1.4em;
-            margin-right: 5px;
-        }
-        
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.4em;
-            cursor: pointer;
-            color: #7f8c8d;
-            padding: 5px;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .close-btn:hover {
-            background: #f5f5f5;
-            color: #e74c3c;
-        }
-        
-        .system-status {
-            text-align: center;
-            margin: 15px 0;
-            padding: 10px;
-            background: #e8f4fd;
-            border-radius: 5px;
-            font-size: 0.9em;
-            color: #2c3e50;
-        }
-
-        /* Lembrete flutuante no canto inferior esquerdo */
+        /* LEMBRETE FLUTUANTE */
         .floating-reminder {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 30px;
+            left: 30px;
             width: 300px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 12px;
+            border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
             z-index: 2147483646;
-            animation: floatIn 0.6s ease-out;
+            animation: floatUp 0.6s;
             border-left: 5px solid #ffeb3b;
-            transition: all 0.3s ease;
-            pointer-events: auto;
         }
-
-        .floating-reminder.minimized {
-            width: 60px;
-            height: 60px;
-            padding: 10px;
-            overflow: hidden;
-            cursor: pointer;
+        
+        @keyframes floatUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-
-        .floating-reminder.minimized:hover {
-            transform: scale(1.05);
+        
+        /* MODO SOBREPOSIÇÃO */
+        .overlay-active .container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2147483647;
+            animation: overlayIn 0.5s;
         }
-
-        @keyframes floatIn {
-            from {
-                transform: translateY(100px) scale(0.8);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
+        
+        @keyframes overlayIn {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
-
-        .floating-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .floating-title {
+        
+        /* MENSAGENS */
+        .message {
+            padding: 15px 20px;
+            margin: 15px 25px;
+            border-radius: 10px;
             font-weight: bold;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .floating-controls {
-            display: flex;
-            gap: 5px;
-        }
-
-        .floating-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9em;
-            transition: all 0.2s;
-        }
-
-        .floating-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-
-        .floating-content {
-            margin-bottom: 15px;
-        }
-
-        .floating-activity {
-            font-size: 1em;
-            margin-bottom: 8px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            border-left: 3px solid #ffeb3b;
-        }
-
-        .floating-time {
-            font-size: 0.9em;
-            opacity: 0.9;
             text-align: center;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 5px 10px;
-            border-radius: 20px;
-            display: inline-block;
+            display: none;
+            animation: fadeIn 0.5s;
         }
-
-        .floating-minimized-icon {
-            font-size: 1.8em;
-            text-align: center;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .next-activities {
-            margin-top: 10px;
-            font-size: 0.85em;
-            opacity: 0.8;
-        }
-
-        .next-activity-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Drag functionality */
-        .draggable {
-            cursor: move;
-            user-select: none;
-        }
-
-        .drag-handle {
-            cursor: move;
-            padding: 5px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 3px;
-        }
-
-        /* Status de sincronização */
-        .sync-status {
-            text-align: center;
-            margin: 10px 0;
-            padding: 8px;
-            border-radius: 5px;
-            font-size: 0.85em;
-        }
-
-        .sync-success {
+        
+        .message-success {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #c3e6cb;
         }
-
-        .sync-error {
+        
+        .message-error {
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #f5c6cb;
         }
-
-        .sync-loading {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        
+        .message-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
         }
-
-        /* Checkbox de confirmação nas atividades */
-        .activity-checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-label {
-            font-size: 0.9em;
-            color: #666;
-            white-space: nowrap;
-        }
-
-        /* ========== NOVA BARRA DE NOTIFICAÇÃO INFERIOR ========== */
-        .notebook-notification-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(90deg, #2c3e50, #3498db);
-            color: white;
-            padding: 12px 20px;
-            z-index: 2147483645;
-            box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.4s ease;
-            transform: translateY(100%);
-            pointer-events: auto;
-        }
-
-        .notebook-notification-bar.active {
-            transform: translateY(0);
-        }
-
-        .notebook-notification-content {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .notebook-notification-icon {
-            font-size: 1.5em;
-            animation: bellRing 2s infinite;
-        }
-
-        @keyframes bellRing {
-            0%, 50%, 100% { transform: rotate(0); }
-            5%, 15% { transform: rotate(15deg); }
-            10%, 20% { transform: rotate(-15deg); }
-        }
-
-        .notebook-notification-text {
-            font-size: 1.1em;
-            font-weight: 500;
-        }
-
-        .notebook-notification-time {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-
-        .notebook-notification-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .notebook-notification-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .notebook-notification-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .notebook-notification-btn.primary {
-            background: #2ecc71;
-        }
-
-        .notebook-notification-btn.primary:hover {
-            background: #27ae60;
-        }
-
-        .notebook-notification-close {
-            background: none;
-            border: none;
-            color: white;
+        
+        /* RELÓGIO */
+        .clock {
+            font-family: 'Courier New', monospace;
             font-size: 1.3em;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.3s;
+            font-weight: bold;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid #3498db;
         }
-
-        .notebook-notification-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .notification-indicator {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 16px;
-            height: 16px;
-            background: #e74c3c;
-            border-radius: 50%;
-            z-index: 2147483646;
-            animation: pulse 1.5s infinite;
-            display: none;
+        
+        /* RESPONSIVO */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .activity-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .activity-time {
+                min-width: auto;
+            }
+            
+            .notification-box {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .floating-reminder {
+                width: calc(100% - 40px);
+                left: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="overlay-backdrop"></div>
-    
     <div class="container">
-        <h1 class="draggable">
-            <span class="drag-handle">≡</span> 
-            Lembretes de Atividades Diárias
-        </h1>
-        
-        <div class="system-status" id="systemStatus">
-            Sistema de lembretes ativo - Próximas notificações aparecerão automaticamente
+        <div class="header">
+            <h1>⏰ SISTEMA DE LEMBRETES - FUNCIONANDO 100%</h1>
+            <p>Notificações sobrepostas • Funciona offline • Seus dados locais</p>
         </div>
-
-        <div id="syncStatus" class="sync-status" style="display: none;">
-            <!-- Status de sincronização será exibido aqui -->
+        
+        <div class="status-bar">
+            <div id="systemStatus">
+                ✅ Sistema carregado com 16 atividades
+            </div>
+            <div class="clock" id="currentTime">--:--:--</div>
         </div>
         
         <div class="controls">
-            <button id="overlayToggle" class="btn overlay-toggle">Modo Sobreposição</button>
-            <button id="testNotification" class="btn test-notification">Testar Notificação</button>
-            <button id="resetAll" class="btn reset-btn">Reiniciar Todas</button>
+            <button class="btn btn-primary" onclick="toggleOverlayMode()">
+                <span>🔲</span> Modo Sobreposição
+            </button>
+            <button class="btn btn-success" onclick="startSystem()">
+                <span>🚀</span> Iniciar Sistema
+            </button>
+            <button class="btn btn-warning" onclick="testNotification()">
+                <span>🔔</span> Testar Notificação
+            </button>
+            <button class="btn btn-danger" onclick="resetAll()">
+                <span>🔄</span> Reiniciar Tudo
+            </button>
         </div>
         
-        <div class="activities-list">
-            <h2>Atividades Programadas</h2>
-            <div id="activitiesContainer">
-                <!-- As atividades serão inseridas aqui dinamicamente -->
-            </div>
+        <div id="message" class="message"></div>
+        
+        <div class="activity-list" id="activitiesList">
+            <!-- Atividades serão carregadas aqui -->
         </div>
         
-        <div class="auto-reminder-info">
-            ⓘ Os lembretes reaparecerão automaticamente a cada 2 minutos até serem confirmados
+        <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+            ⓘ As notificações aparecerão automaticamente nos horários programados
         </div>
     </div>
     
-    <div id="notification" class="notification">
-        <button class="close-btn" id="closeBtn">×</button>
-        <div class="notification-header">
-            <div class="notification-title">
-                <span class="notification-icon">⏰</span>
-                Lembrete de Atividade 
-                <span id="notificationCounter" class="notification-counter" style="display: none;">1</span>
+    <!-- NOTIFICAÇÃO SOBREPOSTA -->
+    <div class="notification-overlay" id="notificationOverlay">
+        <div class="notification-box">
+            <div class="notification-header">
+                <div class="notification-title">
+                    <span style="font-size: 2em;">⏰</span>
+                    LEMBRETE DE ATIVIDADE
+                </div>
+                <div class="notification-time" id="notificationTime">--:--</div>
             </div>
-            <div class="notification-time" id="notificationTime"></div>
-        </div>
-        <div class="notification-message" id="notificationMessage"></div>
-        
-        <div class="check-option">
-            <input type="checkbox" id="markCompleted">
-            <label for="markCompleted">Marcar esta atividade como concluída</label>
-        </div>
-        
-        <div class="notification-actions">
-            <button id="snoozeBtn" class="btn btn-secondary">Adiar (5 min)</button>
-            <button id="confirmBtn" class="btn btn-primary">Confirmar e Sincronizar</button>
-        </div>
-    </div>
-
-    <!-- Lembrete flutuante no canto inferior esquerdo -->
-    <div id="floatingReminder" class="floating-reminder">
-        <div class="floating-header">
-            <div class="floating-title">
-                <span>⏰</span>
-                <span class="floating-title-text">Lembretes</span>
+            
+            <div class="notification-message" id="notificationMessage">
+                Mensagem da notificação aparecerá aqui
             </div>
-            <div class="floating-controls">
-                <button class="floating-btn" id="minimizeBtn">−</button>
-                <button class="floating-btn" id="closeFloatingBtn">×</button>
+            
+            <div style="margin: 25px 0; padding: 20px; background: #f0f7ff; border-radius: 10px;">
+                <label style="display: flex; align-items: center; gap: 15px; cursor: pointer; font-size: 1.2em;">
+                    <input type="checkbox" id="markComplete" style="transform: scale(1.5);">
+                    <span style="font-weight: bold; color: #2c3e50;">Marcar como concluída</span>
+                </label>
             </div>
-        </div>
-        <div class="floating-content">
-            <div class="floating-activity" id="floatingActivity">
-                Nenhuma atividade no momento
-            </div>
-            <div class="floating-time" id="floatingTime">
-                --:--
-            </div>
-            <div class="next-activities" id="nextActivities">
-                <!-- Próximas atividades serão inseridas aqui -->
+            
+            <div class="notification-actions">
+                <button class="btn" onclick="snoozeNotification()" style="background: #95a5a6; color: white; padding: 15px 30px;">
+                    <span>⏸️</span> Adiar (10 min)
+                </button>
+                <button class="btn btn-primary" onclick="completeNotification()" style="padding: 15px 30px;">
+                    <span>✅</span> Concluir
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- ========== NOVA BARRA DE NOTIFICAÇÃO INFERIOR ========== -->
-    <div id="notebookNotificationBar" class="notebook-notification-bar">
-        <div class="notebook-notification-content">
-            <div class="notebook-notification-icon">🔔</div>
-            <div class="notebook-notification-text" id="notebookNotificationText">
-                Nenhuma atividade no momento
-            </div>
-            <div class="notebook-notification-time" id="notebookNotificationTime">
+    
+    <!-- LEMBRETE FLUTUANTE -->
+    <div class="floating-reminder" id="floatingReminder">
+        <div style="margin-bottom: 15px; font-weight: bold; font-size: 1.2em;">
+            <span>⏰</span> PRÓXIMA ATIVIDADE
+        </div>
+        <div style="font-size: 1.1em; margin-bottom: 10px;" id="nextActivity">
+            Carregando...
+        </div>
+        <div style="text-align: center;">
+            <div style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; display: inline-block; font-weight: bold;" id="nextTime">
                 --:--
             </div>
         </div>
-        <div class="notebook-notification-actions">
-            <button class="notebook-notification-btn" id="notebookSnoozeBtn">Adiar</button>
-            <button class="notebook-notification-btn primary" id="notebookConfirmBtn">Confirmar</button>
-            <button class="notebook-notification-close" id="notebookCloseBtn">×</button>
-        </div>
     </div>
-
-    <!-- Indicador de notificação (pequeno ponto vermelho) -->
-    <div id="notificationIndicator" class="notification-indicator"></div>
 
     <script>
-        // Configurações da Planilha Google
-        const SHEET_ID = '1KTdETwaRMczOTOuyIDHAODp4mNmETxDQTs0RGrSNxfI';
-        const SHEET_NAME = 'Atividades diárias';
-        
-        // Dados das atividades do arquivo CSV
-        const activities = [
-            { name: "Preencher mantra", time: "23:15" },
-            { name: "Envio de report's", time: "23:20" },
-            { name: "Preencher Reunião Diária Mantra TL's", time: "23:30" },
-            { name: "Preencher Rotinas", time: "23:40" },
-            { name: "Verificar Matrix e Planilha de desligados(Manutenção dos dados)", time: "01:00" },
-            { name: "Verificar Reuniões de Piso", time: "01:30" },
-            { name: "Preencher mantra Inbound", time: "04:30" },
-            { name: "Verificar e-mails importantes", time: "05:00" },
-            { name: "Fazer feedback", time: "05:15" },
-            { name: "Preencher mantra", time: "05:59" },
-            { name: "Preencher mantra", time: "06:08" }
-        ];
-
-        // Elementos DOM
-        const activitiesContainer = document.getElementById('activitiesContainer');
-        const systemStatus = document.getElementById('systemStatus');
-        const syncStatus = document.getElementById('syncStatus');
-        const notification = document.getElementById('notification');
-        const notificationTime = document.getElementById('notificationTime');
-        const notificationMessage = document.getElementById('notificationMessage');
-        const notificationCounter = document.getElementById('notificationCounter');
-        const confirmBtn = document.getElementById('confirmBtn');
-        const snoozeBtn = document.getElementById('snoozeBtn');
-        const resetAllBtn = document.getElementById('resetAll');
-        const overlayToggle = document.getElementById('overlayToggle');
-        const testNotificationBtn = document.getElementById('testNotification');
-        const markCompletedCheckbox = document.getElementById('markCompleted');
-        const closeBtn = document.getElementById('closeBtn');
-
-        // Elementos para o lembrete flutuante
-        const floatingReminder = document.getElementById('floatingReminder');
-        const floatingActivity = document.getElementById('floatingActivity');
-        const floatingTime = document.getElementById('floatingTime');
-        const nextActivities = document.getElementById('nextActivities');
-        const minimizeBtn = document.getElementById('minimizeBtn');
-        const closeFloatingBtn = document.getElementById('closeFloatingBtn');
-        const floatingTitleText = document.querySelector('.floating-title-text');
-
-        // Elementos para a nova barra de notificação
-        const notebookNotificationBar = document.getElementById('notebookNotificationBar');
-        const notebookNotificationText = document.getElementById('notebookNotificationText');
-        const notebookNotificationTime = document.getElementById('notebookNotificationTime');
-        const notebookSnoozeBtn = document.getElementById('notebookSnoozeBtn');
-        const notebookConfirmBtn = document.getElementById('notebookConfirmBtn');
-        const notebookCloseBtn = document.getElementById('notebookCloseBtn');
-        const notificationIndicator = document.getElementById('notificationIndicator');
-
-        // Estado da aplicação
-        let currentActivity = null;
-        let timers = [];
-        let snoozeTimer = null;
-        let autoReminderTimer = null;
-        let reminderCount = 0;
-        const AUTO_REMINDER_INTERVAL = 2 * 60 * 1000;
-        let isFloatingMinimized = false;
-        let isOverlayMode = false;
-        let notebookNotificationTimer = null;
-
-        // Inicialização
-        function init() {
-            loadCompletedActivities();
-            renderActivities();
-            setupTimers();
-            setupEventListeners();
-            setupDragFunctionality();
+        // ========== SISTEMA PRINCIPAL ==========
+        class LembreteSystem {
+            constructor() {
+                this.activities = [];
+                this.currentActivity = null;
+                this.timers = [];
+                this.isOverlayMode = false;
+                this.autoStart = true;
+                this.init();
+            }
             
-            requestNotificationPermission();
-            updateSystemStatus();
-            updateFloatingReminder();
-            
-            // Iniciar atualização periódica do status
-            setInterval(updateSystemStatus, 60000);
-        }
-
-        // ========== FUNÇÕES DE SINCRONIZAÇÃO COM GOOGLE SHEETS ==========
-
-        // Função para atualizar a planilha Google
-        async function updateGoogleSheet(activity) {
-            showSyncStatus('Sincronizando com a planilha...', 'loading');
-            
-            try {
-                // Buscar dados atuais da planilha
-                const sheetData = await getSheetData();
-                if (!sheetData) {
-                    throw new Error('Não foi possível acessar a planilha');
-                }
-
-                // Encontrar a linha correspondente à atividade
-                const rowIndex = findActivityRow(sheetData, activity);
+            init() {
+                console.log('🚀 Sistema de Lembretes inicializando...');
                 
-                if (rowIndex !== -1) {
-                    // Atualizar a coluna "Validar" para TRUE
-                    await updateSheetRow(rowIndex, 'TRUE');
-                    showSyncStatus('Atividade sincronizada com sucesso!', 'success');
-                    return true;
-                } else {
-                    throw new Error('Atividade não encontrada na planilha');
-                }
-            } catch (error) {
-                console.error('Erro ao sincronizar com Google Sheets:', error);
-                showSyncStatus('Erro na sincronização: ' + error.message, 'error');
-                return false;
-            }
-        }
-
-        // Buscar dados da planilha
-        async function getSheetData() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-            
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Erro ao buscar dados');
+                // Atualizar relógio
+                this.updateClock();
+                setInterval(() => this.updateClock(), 1000);
                 
-                const text = await response.text();
-                const json = JSON.parse(text.substring(47).slice(0, -2));
-                return json.table.rows;
-            } catch (error) {
-                console.error('Erro ao buscar dados da planilha:', error);
-                return null;
-            }
-        }
-
-        // Encontrar a linha da atividade na planilha
-        function findActivityRow(sheetData, activity) {
-            for (let i = 0; i < sheetData.length; i++) {
-                const row = sheetData[i];
-                if (row.c && row.c.length >= 2) {
-                    const rowActivity = row.c[0] ? row.c[0].v : '';
-                    const rowTime = row.c[1] ? row.c[1].v : '';
-                    
-                    // Comparar atividade e horário (ignorando diferenças de formatação)
-                    if (rowActivity && rowTime && 
-                        normalizeText(rowActivity) === normalizeText(activity.name) &&
-                        normalizeTime(rowTime) === normalizeTime(activity.time)) {
-                        return i + 1; // +1 porque as linhas começam em 1
-                    }
-                }
-            }
-            return -1;
-        }
-
-        // Normalizar texto para comparação
-        function normalizeText(text) {
-            return text.toLowerCase().trim().replace(/\s+/g, ' ');
-        }
-
-        // Normalizar horário para comparação
-        function normalizeTime(time) {
-            // Remover segundos se presentes
-            return time.split(':').slice(0, 2).join(':');
-        }
-
-        // Atualizar uma linha específica na planilha
-        async function updateSheetRow(rowIndex, newValue) {
-            // Esta função requer uma implementação mais complexa com Google Apps Script
-            // Para simplificar, vamos usar uma abordagem alternativa
-            await simulateSheetUpdate();
-            return true;
-        }
-
-        // Simular atualização da planilha (substituir por implementação real)
-        async function simulateSheetUpdate() {
-            return new Promise(resolve => {
-                setTimeout(resolve, 1000);
-            });
-        }
-
-        // Mostrar status de sincronização
-        function showSyncStatus(message, type) {
-            syncStatus.textContent = message;
-            syncStatus.className = 'sync-status';
-            
-            switch (type) {
-                case 'success':
-                    syncStatus.classList.add('sync-success');
-                    break;
-                case 'error':
-                    syncStatus.classList.add('sync-error');
-                    break;
-                case 'loading':
-                    syncStatus.classList.add('sync-loading');
-                    break;
-            }
-            
-            syncStatus.style.display = 'block';
-            
-            // Auto-esconder após alguns segundos
-            if (type !== 'loading') {
-                setTimeout(() => {
-                    syncStatus.style.display = 'none';
-                }, 5000);
-            }
-        }
-
-        // ========== FUNÇÕES EXISTENTES (MODIFICADAS) ==========
-
-        // Configurar funcionalidade de arrastar
-        function setupDragFunctionality() {
-            const draggable = document.querySelector('.draggable');
-            let isDragging = false;
-            let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
-
-            draggable.addEventListener("mousedown", dragStart);
-            document.addEventListener("mousemove", drag);
-            document.addEventListener("mouseup", dragEnd);
-
-            function dragStart(e) {
-                if (e.target.classList.contains('drag-handle') || e.target.classList.contains('draggable')) {
-                    initialX = e.clientX - xOffset;
-                    initialY = e.clientY - yOffset;
-                    if (e.target === draggable) isDragging = true;
-                }
-            }
-
-            function drag(e) {
-                if (isDragging) {
-                    e.preventDefault();
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                    xOffset = currentX;
-                    yOffset = currentY;
-                    setTranslate(currentX, currentY, draggable.parentElement);
-                }
-            }
-
-            function dragEnd(e) {
-                initialX = currentX;
-                initialY = currentY;
-                isDragging = false;
-            }
-
-            function setTranslate(xPos, yPos, el) {
-                el.style.transform = `translate(${xPos}px, ${yPos}px)`;
-            }
-        }
-
-        // Alternar modo sobreposição
-        function toggleOverlayMode() {
-            isOverlayMode = !isOverlayMode;
-            document.body.classList.toggle('overlay-mode', isOverlayMode);
-            overlayToggle.textContent = isOverlayMode ? 'Modo Normal' : 'Modo Sobreposição';
-            
-            if (isOverlayMode) {
-                document.querySelectorAll('.notification, .floating-reminder').forEach(el => {
-                    el.style.zIndex = '2147483646';
-                });
-            }
-        }
-
-        // Atualiza o status do sistema
-        function updateSystemStatus() {
-            const now = new Date();
-            const nextActivities = activities
-                .filter(activity => !activity.completed)
-                .map(activity => {
-                    const activityTime = new Date();
-                    const [hours, minutes] = activity.time.split(':');
-                    activityTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                    
-                    if (activityTime < now) {
-                        activityTime.setDate(activityTime.getDate() + 1);
-                    }
-                    
-                    return {
-                        name: activity.name,
-                        time: activity.time,
-                        timeUntil: activityTime.getTime() - now.getTime()
-                    };
-                })
-                .sort((a, b) => a.timeUntil - b.timeUntil);
-            
-            if (nextActivities.length > 0) {
-                const nextActivity = nextActivities[0];
-                const minutesUntil = Math.round(nextActivity.timeUntil / 60000);
-                systemStatus.textContent = `Próxima atividade: ${nextActivity.name} às ${nextActivity.time} (em ${minutesUntil} minutos)`;
-            } else {
-                systemStatus.textContent = 'Todas as atividades foram concluídas';
-            }
-        }
-
-        // Atualiza o lembrete flutuante
-        function updateFloatingReminder() {
-            const now = new Date();
-            const pendingActivities = activities
-                .filter(activity => !activity.completed)
-                .map(activity => {
-                    const activityTime = new Date();
-                    const [hours, minutes] = activity.time.split(':');
-                    activityTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                    
-                    if (activityTime < now) {
-                        activityTime.setDate(activityTime.getDate() + 1);
-                    }
-                    
-                    return {
-                        name: activity.name,
-                        time: activity.time,
-                        timeUntil: activityTime.getTime() - now.getTime(),
-                        date: activityTime
-                    };
-                })
-                .sort((a, b) => a.timeUntil - b.timeUntil);
-
-            if (pendingActivities.length > 0) {
-                const nextActivity = pendingActivities[0];
-                const minutesUntil = Math.round(nextActivity.timeUntil / 60000);
+                // Carregar dados salvos
+                this.loadSavedData();
                 
-                floatingActivity.textContent = nextActivity.name;
-                floatingTime.textContent = `${nextActivity.time} (em ${minutesUntil} min)`;
-                
-                if (pendingActivities.length > 1) {
-                    let nextActivitiesHTML = '<div style="margin-top: 8px; font-weight: bold;">Próximas:</div>';
-                    for (let i = 1; i < Math.min(pendingActivities.length, 4); i++) {
-                        const activity = pendingActivities[i];
-                        const mins = Math.round(activity.timeUntil / 60000);
-                        nextActivitiesHTML += `
-                            <div class="next-activity-item">
-                                <span>${activity.name}</span>
-                                <span>${activity.time} (${mins} min)</span>
-                            </div>
-                        `;
-                    }
-                    nextActivities.innerHTML = nextActivitiesHTML;
-                } else {
-                    nextActivities.innerHTML = '';
+                // Se não houver dados, carregar padrão
+                if (this.activities.length === 0) {
+                    this.loadDefaultActivities();
                 }
-            } else {
-                floatingActivity.textContent = 'Todas as atividades concluídas';
-                floatingTime.textContent = '--:--';
-                nextActivities.innerHTML = '';
-            }
-        }
-
-        // Carrega atividades completas do localStorage
-        function loadCompletedActivities() {
-            const completed = localStorage.getItem('completedActivities');
-            if (completed) {
-                const completedArray = JSON.parse(completed);
-                activities.forEach(activity => {
-                    activity.completed = completedArray.includes(activity.name + "|" + activity.time);
-                });
-            } else {
-                activities.forEach(activity => {
-                    activity.completed = false;
-                });
-            }
-        }
-
-        // Salva atividades completas no localStorage
-        function saveCompletedActivities() {
-            const completedArray = activities
-                .filter(activity => activity.completed)
-                .map(activity => activity.name + "|" + activity.time);
-            localStorage.setItem('completedActivities', JSON.stringify(completedArray));
-        }
-
-        // Renderiza a lista de atividades COM CHECKBOXES
-        function renderActivities() {
-            activitiesContainer.innerHTML = '';
-            
-            if (activities.length === 0) {
-                activitiesContainer.innerHTML = '<div class="activity-item">Nenhuma atividade encontrada</div>';
-                return;
-            }
-            
-            activities.forEach((activity, index) => {
-                const activityElement = document.createElement('div');
-                activityElement.className = `activity-item ${activity.completed ? 'completed' : ''}`;
                 
-                activityElement.innerHTML = `
-                    <div class="activity-info">
-                        <span class="status-indicator ${activity.completed ? 'status-completed' : 'status-pending'}"></span>
-                        <span class="activity-time">${activity.time}</span>
-                        <span class="activity-name">${activity.name}</span>
-                    </div>
-                    <div class="activity-checkbox-container">
-                        <span class="checkbox-label">Concluída:</span>
-                        <div class="activity-checkbox">
-                            <input type="checkbox" id="activity-${index}" 
-                                   ${activity.completed ? 'checked' : ''}
-                                   data-activity-index="${index}">
+                // Renderizar atividades
+                this.renderActivities();
+                
+                // Configurar timers
+                this.setupTimers();
+                
+                // Atualizar lembrete flutuante
+                this.updateFloatingReminder();
+                
+                // Atualizar a cada minuto
+                setInterval(() => {
+                    this.updateFloatingReminder();
+                    this.checkNotifications();
+                }, 60000);
+                
+                // Pedir permissão para notificações
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+                
+                // Mostrar mensagem inicial
+                this.showMessage('✅ Sistema carregado com ' + this.activities.length + ' atividades!', 'success');
+                
+                console.log('✅ Sistema inicializado com', this.activities.length, 'atividades');
+            }
+            
+            // ========== DADOS DAS ATIVIDADES ==========
+            loadDefaultActivities() {
+                this.activities = [
+                    { name: "Enviar fechamento H x H | T2", time: "22:40", completed: false, id: 1 },
+                    { name: "Preencher mantra plano", time: "23:15", completed: false, id: 2 },
+                    { name: "Envio de report's", time: "23:16", completed: false, id: 3 },
+                    { name: "Envio de H x H SP09", time: "23:20", completed: false, id: 4 },
+                    { name: "Preencher Reunião Diária Mantra TL's", time: "23:30", completed: false, id: 5 },
+                    { name: "Preencher Rotinas", time: "23:40", completed: false, id: 6 },
+                    { name: "Verificar Matrix e Planilha de desligados(Manutenção dos dados)", time: "01:00", completed: false, id: 7 },
+                    { name: "Verificar Reuniões de Piso", time: "01:30", completed: false, id: 8 },
+                    { name: "Preencher Rotinas", time: "02:00", completed: false, id: 9 },
+                    { name: "Preencher mantra Inbound", time: "04:30", completed: false, id: 10 },
+                    { name: "Enviar fechamento OOT", time: "04:15", completed: false, id: 11 },
+                    { name: "Verificar e-mails importantes", time: "05:00", completed: false, id: 12 },
+                    { name: "Fazer feedback", time: "05:15", completed: false, id: 13 },
+                    { name: "Preencher Rotinas", time: "05:40", completed: false, id: 14 },
+                    { name: "Preencher mantra plano final", time: "05:59", completed: false, id: 15 },
+                    { name: "Preencher mantra Real", time: "06:08", completed: false, id: 16 }
+                ];
+                
+                this.saveData();
+            }
+            
+            // ========== INTERFACE ==========
+            renderActivities() {
+                const container = document.getElementById('activitiesList');
+                
+                if (this.activities.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #666;">
+                            <div style="font-size: 3em; margin-bottom: 20px;">📋</div>
+                            <div style="font-size: 1.2em;">Nenhuma atividade encontrada</div>
                         </div>
-                    </div>
-                `;
-                
-                activitiesContainer.appendChild(activityElement);
-            });
-
-            // Adicionar event listeners para os checkboxes
-            document.querySelectorAll('.activity-checkbox input').forEach(checkbox => {
-                checkbox.addEventListener('change', handleActivityCheckboxChange);
-            });
-        }
-
-        // Manipular mudança nos checkboxes das atividades
-        async function handleActivityCheckboxChange(event) {
-            const checkbox = event.target;
-            const activityIndex = parseInt(checkbox.getAttribute('data-activity-index'));
-            const activity = activities[activityIndex];
-            
-            if (checkbox.checked) {
-                // Marcar como concluída
-                activity.completed = true;
-                saveCompletedActivities();
-                renderActivities();
-                setupTimers();
-                
-                // Sincronizar com Google Sheets
-                const syncSuccess = await updateGoogleSheet(activity);
-                
-                if (syncSuccess) {
-                    console.log(`Atividade marcada e sincronizada: ${activity.name}`);
-                } else {
-                    console.log(`Atividade marcada localmente: ${activity.name}`);
+                    `;
+                    return;
                 }
-            } else {
-                // Desmarcar (reiniciar atividade)
-                activity.completed = false;
-                saveCompletedActivities();
-                renderActivities();
-                setupTimers();
-                console.log(`Atividade reiniciada: ${activity.name}`);
+                
+                let html = '';
+                
+                this.activities.forEach((activity, index) => {
+                    const isCompleted = activity.completed || false;
+                    
+                    html += `
+                        <div class="activity-item ${isCompleted ? 'completed' : ''}" data-id="${activity.id}">
+                            <div class="activity-time">${activity.time}</div>
+                            <div class="activity-name">${activity.name}</div>
+                            <div class="activity-checkbox">
+                                <input type="checkbox" 
+                                       ${isCompleted ? 'checked' : ''}
+                                       onchange="system.toggleActivity(${index}, this.checked)"
+                                       title="${isCompleted ? 'Marcar como pendente' : 'Marcar como concluída'}">
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
             }
-        }
-
-        // Configura os temporizadores para as atividades
-        function setupTimers() {
-            timers.forEach(timer => clearTimeout(timer));
-            timers = [];
             
-            activities.forEach(activity => {
-                if (activity.completed) return;
+            toggleActivity(index, completed) {
+                if (index >= 0 && index < this.activities.length) {
+                    this.activities[index].completed = completed;
+                    this.saveData();
+                    this.renderActivities();
+                    this.setupTimers();
+                    this.updateFloatingReminder();
+                    
+                    this.showMessage(
+                        completed ? 
+                        '✅ Atividade marcada como concluída' : 
+                        '🔄 Atividade marcada como pendente',
+                        'success'
+                    );
+                }
+            }
+            
+            // ========== NOTIFICAÇÕES ==========
+            setupTimers() {
+                // Limpar timers antigos
+                this.timers.forEach(timer => clearTimeout(timer));
+                this.timers = [];
                 
                 const now = new Date();
-                const activityTime = new Date();
-                const [hours, minutes] = activity.time.split(':');
-                activityTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                const currentTime = now.getHours() * 60 + now.getMinutes();
                 
-                if (activityTime < now) {
-                    activityTime.setDate(activityTime.getDate() + 1);
-                }
-                
-                const timeUntilActivity = activityTime.getTime() - now.getTime();
-                
-                if (timeUntilActivity > 0) {
-                    const timer = setTimeout(() => {
-                        showNotification(activity);
-                    }, timeUntilActivity);
+                this.activities.forEach((activity, index) => {
+                    // Pular atividades concluídas
+                    if (activity.completed) return;
                     
-                    timers.push(timer);
-                }
-            });
-            
-            updateSystemStatus();
-            updateFloatingReminder();
-        }
-
-        // Mostra a notificação para uma atividade
-        function showNotification(activity) {
-            currentActivity = activity;
-            reminderCount = 0;
-            
-            updateNotificationContent();
-            notification.classList.add('active');
-            markCompletedCheckbox.checked = false;
-            playNotificationSound();
-            startAutoReminder();
-            
-            // Mostrar também na barra de notificação do notebook
-            showNotebookNotification(activity);
-            
-            if (!document.hasFocus()) {
-                showBrowserNotification(activity, false);
-            }
-        }
-
-        // Atualiza o conteúdo da notificação
-        function updateNotificationContent() {
-            if (!currentActivity) return;
-            
-            notificationTime.textContent = currentActivity.time;
-            
-            let message = currentActivity.name;
-            if (reminderCount > 0) {
-                message += ` (Lembrete ${reminderCount + 1})`;
-                notificationCounter.textContent = reminderCount + 1;
-                notificationCounter.style.display = 'inline-flex';
-                
-                if (reminderCount >= 2) {
-                    notification.classList.add('urgent');
-                }
-            } else {
-                notificationCounter.style.display = 'none';
-                notification.classList.remove('urgent');
-            }
-            
-            notificationMessage.textContent = message;
-        }
-
-        // Inicia o sistema de lembretes automáticos
-        function startAutoReminder() {
-            if (autoReminderTimer) {
-                clearTimeout(autoReminderTimer);
-            }
-            
-            autoReminderTimer = setTimeout(() => {
-                if (currentActivity && !currentActivity.completed) {
-                    reminderCount++;
-                    updateNotificationContent();
-                    playNotificationSound();
+                    // Converter horário para minutos
+                    const [hours, minutes] = activity.time.split(':').map(Number);
+                    const activityTime = hours * 60 + minutes;
                     
-                    // Atualizar também a barra de notificação do notebook
-                    updateNotebookNotification();
+                    // Calcular tempo até a atividade
+                    let timeUntil;
                     
-                    if (!document.hasFocus()) {
-                        showBrowserNotification(currentActivity, true);
+                    if (activityTime > currentTime) {
+                        // Atividade hoje
+                        timeUntil = (activityTime - currentTime) * 60000;
+                    } else {
+                        // Atividade amanhã
+                        timeUntil = ((24 * 60 - currentTime) + activityTime) * 60000;
                     }
                     
-                    startAutoReminder();
-                }
-            }, AUTO_REMINDER_INTERVAL);
-        }
-
-        // Para o sistema de lembretes automáticos
-        function stopAutoReminder() {
-            if (autoReminderTimer) {
-                clearTimeout(autoReminderTimer);
-                autoReminderTimer = null;
-            }
-            reminderCount = 0;
-            notification.classList.remove('urgent');
-            notificationCounter.style.display = 'none';
-        }
-
-        // Toca um som de notificação
-        function playNotificationSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                if (reminderCount > 0) {
-                    oscillator.type = 'sawtooth';
-                    oscillator.frequency.value = 600;
-                    gainNode.gain.value = 0.15;
-                } else {
-                    oscillator.type = 'sine';
-                    oscillator.frequency.value = 800;
-                    gainNode.gain.value = 0.1;
-                }
-                
-                oscillator.start();
-                setTimeout(() => { oscillator.stop(); }, 300);
-            } catch (e) {
-                console.log("Áudio não suportado neste navegador");
-            }
-        }
-
-        // Solicita permissão para notificações do navegador
-        function requestNotificationPermission() {
-            if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission();
-            }
-        }
-
-        // Mostra notificação do navegador
-        function showBrowserNotification(activity, isReminder) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                const title = isReminder ? "Lembrete Repetido" : "Lembrete de Atividade";
-                const body = isReminder ? 
-                    `${activity.name} - ${activity.time} (Lembrete ${reminderCount + 1})` : 
-                    `${activity.name} - ${activity.time}`;
-                
-                new Notification(title, {
-                    body: body,
-                    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>",
-                    tag: "activity-reminder"
+                    // Agendar notificação (mínimo 1 segundo, máximo 24 horas)
+                    if (timeUntil > 0 && timeUntil < 24 * 60 * 60 * 1000) {
+                        const timer = setTimeout(() => {
+                            this.showActivityNotification(activity);
+                        }, timeUntil);
+                        
+                        this.timers.push(timer);
+                        
+                        console.log(`⏰ Agendado: ${activity.name} às ${activity.time} (em ${Math.round(timeUntil/60000)} minutos)`);
+                    }
                 });
-            }
-        }
-
-        // ========== NOVAS FUNÇÕES PARA A BARRA DE NOTIFICAÇÃO DO NOTEBOOK ==========
-
-        // Mostra notificação na barra inferior
-        function showNotebookNotification(activity) {
-            notebookNotificationText.textContent = activity.name;
-            notebookNotificationTime.textContent = activity.time;
-            
-            // Ativar a barra de notificação
-            notebookNotificationBar.classList.add('active');
-            
-            // Mostrar indicador de notificação
-            notificationIndicator.style.display = 'block';
-            
-            // Configurar timer para auto-esconder após 30 segundos se não interagir
-            if (notebookNotificationTimer) {
-                clearTimeout(notebookNotificationTimer);
+                
+                console.log(`✅ ${this.timers.length} notificações agendadas`);
             }
             
-            notebookNotificationTimer = setTimeout(() => {
-                if (notebookNotificationBar.classList.contains('active')) {
-                    hideNotebookNotification();
-                }
-            }, 30000);
-        }
-
-        // Atualiza a notificação na barra (para lembretes repetidos)
-        function updateNotebookNotification() {
-            if (currentActivity) {
-                let message = currentActivity.name;
-                if (reminderCount > 0) {
-                    message += ` (Lembrete ${reminderCount + 1})`;
+            showActivityNotification(activity) {
+                this.currentActivity = activity;
+                
+                // Atualizar elementos da notificação
+                document.getElementById('notificationTime').textContent = activity.time;
+                document.getElementById('notificationMessage').textContent = activity.name;
+                document.getElementById('markComplete').checked = false;
+                
+                // Mostrar notificação sobreposta
+                document.getElementById('notificationOverlay').style.display = 'flex';
+                
+                // Atualizar lembrete flutuante
+                document.getElementById('nextActivity').textContent = activity.name;
+                document.getElementById('nextTime').textContent = activity.time + ' (AGORA)';
+                document.getElementById('floatingReminder').style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+                
+                // Tocar som
+                this.playNotificationSound();
+                
+                // Notificação do navegador
+                if (Notification.permission === 'granted') {
+                    new Notification('⏰ Lembrete de Atividade', {
+                        body: `${activity.name}\nHorário: ${activity.time}`,
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⏰</text></svg>',
+                        requireInteraction: true
+                    });
                 }
                 
-                notebookNotificationText.textContent = message;
-                notebookNotificationTime.textContent = currentActivity.time;
-                
-                // Reiniciar timer de auto-esconder
-                if (notebookNotificationTimer) {
-                    clearTimeout(notebookNotificationTimer);
+                this.showMessage(`🔔 Notificação: ${activity.name}`, 'warning');
+            }
+            
+            completeNotification() {
+                if (this.currentActivity) {
+                    const activityIndex = this.activities.findIndex(a => a.id === this.currentActivity.id);
+                    if (activityIndex !== -1) {
+                        this.toggleActivity(activityIndex, true);
+                    }
                 }
                 
-                notebookNotificationTimer = setTimeout(() => {
-                    if (notebookNotificationBar.classList.contains('active')) {
-                        hideNotebookNotification();
-                    }
-                }, 30000);
+                this.hideNotification();
             }
-        }
-
-        // Esconde a notificação da barra
-        function hideNotebookNotification() {
-            notebookNotificationBar.classList.remove('active');
-            notificationIndicator.style.display = 'none';
             
-            if (notebookNotificationTimer) {
-                clearTimeout(notebookNotificationTimer);
-                notebookNotificationTimer = null;
-            }
-        }
-
-        // Configura os event listeners
-        function setupEventListeners() {
-            // Confirmar atividade E SINCRONIZAR
-            confirmBtn.addEventListener('click', async () => {
-                if (currentActivity) {
-                    if (markCompletedCheckbox.checked) {
-                        // Marcar como concluído localmente
-                        currentActivity.completed = true;
-                        saveCompletedActivities();
-                        renderActivities();
-                        setupTimers();
-                        
-                        // Tentar sincronizar com Google Sheets
-                        const syncSuccess = await updateGoogleSheet(currentActivity);
-                        
-                        if (syncSuccess) {
-                            console.log(`Atividade concluída e sincronizada: ${currentActivity.name}`);
-                        } else {
-                            console.log(`Atividade concluída localmente: ${currentActivity.name}`);
-                        }
+            snoozeNotification() {
+                this.hideNotification();
+                
+                // Reagendar para 10 minutos
+                setTimeout(() => {
+                    if (this.currentActivity && !this.currentActivity.completed) {
+                        this.showActivityNotification(this.currentActivity);
                     }
+                }, 10 * 60 * 1000);
+                
+                this.showMessage('⏸️ Notificação adiada por 10 minutos', 'warning');
+            }
+            
+            hideNotification() {
+                document.getElementById('notificationOverlay').style.display = 'none';
+                document.getElementById('floatingReminder').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                this.updateFloatingReminder();
+            }
+            
+            testNotification() {
+                const testActivity = {
+                    name: "TESTE - Sistema de Lembretes funcionando perfeitamente!",
+                    time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    id: 999
+                };
+                
+                this.showActivityNotification(testActivity);
+                this.showMessage('🔔 Notificação de teste ativada', 'success');
+            }
+            
+            // ========== LEMBRETE FLUTUANTE ==========
+            updateFloatingReminder() {
+                const pendingActivities = this.activities.filter(a => !a.completed);
+                
+                if (pendingActivities.length === 0) {
+                    document.getElementById('nextActivity').textContent = 'Todas atividades concluídas';
+                    document.getElementById('nextTime').textContent = '🎉';
+                    return;
                 }
-                hideNotification();
-                hideNotebookNotification();
-            });
-            
-            // Outros event listeners
-            snoozeBtn.addEventListener('click', () => {
-                hideNotification();
-                hideNotebookNotification();
-                snoozeTimer = setTimeout(() => {
-                    if (currentActivity && !currentActivity.completed) {
-                        showNotification(currentActivity);
+                
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                
+                let nextActivity = null;
+                let minTimeDifference = Infinity;
+                
+                // Encontrar a próxima atividade
+                pendingActivities.forEach(activity => {
+                    const [hours, minutes] = activity.time.split(':').map(Number);
+                    const activityTime = hours * 60 + minutes;
+                    
+                    let timeDifference;
+                    
+                    if (activityTime > currentTime) {
+                        // Hoje
+                        timeDifference = activityTime - currentTime;
+                    } else {
+                        // Amanhã
+                        timeDifference = (24 * 60 - currentTime) + activityTime;
                     }
-                }, 5 * 60 * 1000);
-            });
+                    
+                    if (timeDifference < minTimeDifference) {
+                        minTimeDifference = timeDifference;
+                        nextActivity = activity;
+                    }
+                });
+                
+                if (nextActivity) {
+                    const hours = Math.floor(minTimeDifference / 60);
+                    const minutes = minTimeDifference % 60;
+                    
+                    let timeText;
+                    if (hours > 0) {
+                        timeText = `em ${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
+                    } else {
+                        timeText = `em ${minutes} min`;
+                    }
+                    
+                    document.getElementById('nextActivity').textContent = nextActivity.name;
+                    document.getElementById('nextTime').textContent = `${nextActivity.time} (${timeText})`;
+                    
+                    // Mostrar lembrete flutuante
+                    document.getElementById('floatingReminder').style.display = 'block';
+                }
+            }
             
-            resetAllBtn.addEventListener('click', () => {
-                if (confirm('Tem certeza que deseja reiniciar todas as atividades?')) {
-                    activities.forEach(activity => {
+            // ========== CONTROLES ==========
+            startSystem() {
+                this.setupTimers();
+                this.updateFloatingReminder();
+                this.showMessage('🚀 Sistema iniciado! Notificações ativadas.', 'success');
+                document.getElementById('systemStatus').textContent = '✅ Sistema ativo - Notificações programadas';
+            }
+            
+            resetAll() {
+                if (confirm('Tem certeza que deseja reiniciar TODAS as atividades?\nIsso irá marcar todas como pendentes.')) {
+                    this.activities.forEach(activity => {
                         activity.completed = false;
                     });
-                    saveCompletedActivities();
-                    renderActivities();
-                    setupTimers();
-                    hideNotification();
-                    hideNotebookNotification();
-                }
-            });
-
-            overlayToggle.addEventListener('click', toggleOverlayMode);
-            closeBtn.addEventListener('click', hideNotification);
-            
-            testNotificationBtn.addEventListener('click', () => {
-                const testActivity = activities[0];
-                showNotification(testActivity);
-            });
-
-            minimizeBtn.addEventListener('click', toggleFloatingReminder);
-            closeFloatingBtn.addEventListener('click', () => {
-                floatingReminder.style.display = 'none';
-            });
-
-            floatingReminder.addEventListener('click', (e) => {
-                if (isFloatingMinimized) {
-                    toggleFloatingReminder();
-                }
-            });
-
-            // Event listeners para a barra de notificação do notebook
-            notebookConfirmBtn.addEventListener('click', async () => {
-                if (currentActivity) {
-                    // Marcar como concluído localmente
-                    currentActivity.completed = true;
-                    saveCompletedActivities();
-                    renderActivities();
-                    setupTimers();
                     
-                    // Tentar sincronizar com Google Sheets
-                    const syncSuccess = await updateGoogleSheet(currentActivity);
+                    this.saveData();
+                    this.renderActivities();
+                    this.setupTimers();
+                    this.updateFloatingReminder();
                     
-                    if (syncSuccess) {
-                        console.log(`Atividade concluída e sincronizada: ${currentActivity.name}`);
-                    } else {
-                        console.log(`Atividade concluída localmente: ${currentActivity.name}`);
-                    }
+                    this.showMessage('🔄 Todas as atividades reiniciadas', 'success');
                 }
-                hideNotification();
-                hideNotebookNotification();
-            });
-
-            notebookSnoozeBtn.addEventListener('click', () => {
-                hideNotification();
-                hideNotebookNotification();
-                snoozeTimer = setTimeout(() => {
-                    if (currentActivity && !currentActivity.completed) {
-                        showNotification(currentActivity);
-                    }
-                }, 5 * 60 * 1000);
-            });
-
-            notebookCloseBtn.addEventListener('click', () => {
-                hideNotebookNotification();
-            });
-
-            setInterval(updateFloatingReminder, 60000);
-        }
-
-        // Alternar entre minimizado e expandido
-        function toggleFloatingReminder() {
-            isFloatingMinimized = !isFloatingMinimized;
+            }
             
-            if (isFloatingMinimized) {
-                floatingReminder.classList.add('minimized');
-                floatingTitleText.style.display = 'none';
-                floatingReminder.innerHTML = `<div class="floating-minimized-icon">⏰</div>`;
-            } else {
-                floatingReminder.classList.remove('minimized');
-                floatingReminder.innerHTML = `
-                    <div class="floating-header">
-                        <div class="floating-title">
-                            <span>⏰</span>
-                            <span class="floating-title-text">Lembretes</span>
-                        </div>
-                        <div class="floating-controls">
-                            <button class="floating-btn" id="minimizeBtn">−</button>
-                            <button class="floating-btn" id="closeFloatingBtn">×</button>
-                        </div>
-                    </div>
-                    <div class="floating-content">
-                        <div class="floating-activity" id="floatingActivity">
-                            ${floatingActivity.textContent}
-                        </div>
-                        <div class="floating-time" id="floatingTime">
-                            ${floatingTime.textContent}
-                        </div>
-                        <div class="next-activities" id="nextActivities">
-                            ${nextActivities.innerHTML}
-                        </div>
-                    </div>
-                `;
+            toggleOverlayMode() {
+                this.isOverlayMode = !this.isOverlayMode;
                 
-                document.getElementById('minimizeBtn').addEventListener('click', toggleFloatingReminder);
-                document.getElementById('closeFloatingBtn').addEventListener('click', () => {
-                    floatingReminder.style.display = 'none';
+                if (this.isOverlayMode) {
+                    document.body.classList.add('overlay-active');
+                    this.showMessage('🔲 Modo sobreposição ATIVADO - A janela fica sobre outros aplicativos', 'warning');
+                } else {
+                    document.body.classList.remove('overlay-active');
+                    this.showMessage('📱 Modo sobreposição DESATIVADO', 'success');
+                }
+            }
+            
+            // ========== FUNÇÕES AUXILIARES ==========
+            updateClock() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('currentTime').textContent = timeString;
+            }
+            
+            showMessage(text, type) {
+                const messageEl = document.getElementById('message');
+                messageEl.textContent = text;
+                messageEl.className = 'message';
+                
+                switch(type) {
+                    case 'success':
+                        messageEl.classList.add('message-success');
+                        break;
+                    case 'error':
+                        messageEl.classList.add('message-error');
+                        break;
+                    case 'warning':
+                        messageEl.classList.add('message-warning');
+                        break;
+                }
+                
+                messageEl.style.display = 'block';
+                
+                // Auto-esconder após 5 segundos
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 5000);
+            }
+            
+            playNotificationSound() {
+                try {
+                    // Criar som de notificação
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // Primeiro bipe
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    
+                    oscillator.start();
+                    
+                    // Segundo bipe
+                    setTimeout(() => {
+                        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                    }, 200);
+                    
+                    // Parar após 500ms
+                    setTimeout(() => {
+                        oscillator.stop();
+                    }, 500);
+                    
+                } catch (error) {
+                    console.log('Som não disponível neste navegador');
+                }
+            }
+            
+            // ========== ARMAZENAMENTO LOCAL ==========
+            saveData() {
+                try {
+                    // Salvar atividades
+                    localStorage.setItem('lembretes_activities', JSON.stringify(this.activities));
+                    
+                    // Salvar estado de conclusão
+                    const completedIds = this.activities
+                        .filter(a => a.completed)
+                        .map(a => a.id);
+                    localStorage.setItem('lembretes_completed', JSON.stringify(completedIds));
+                    
+                } catch (error) {
+                    console.error('Erro ao salvar dados:', error);
+                }
+            }
+            
+            loadSavedData() {
+                try {
+                    // Carregar atividades
+                    const savedActivities = localStorage.getItem('lembretes_activities');
+                    if (savedActivities) {
+                        this.activities = JSON.parse(savedActivities);
+                    }
+                    
+                    // Carregar estado de conclusão
+                    const savedCompleted = localStorage.getItem('lembretes_completed');
+                    if (savedCompleted) {
+                        const completedIds = JSON.parse(savedCompleted);
+                        this.activities.forEach(activity => {
+                            activity.completed = completedIds.includes(activity.id);
+                        });
+                    }
+                    
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                }
+            }
+            
+            // ========== VERIFICAÇÃO PERIÓDICA ==========
+            checkNotifications() {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                
+                // Verificar se alguma atividade está no horário
+                this.activities.forEach(activity => {
+                    if (!activity.completed) {
+                        const [hours, minutes] = activity.time.split(':').map(Number);
+                        const activityTime = hours * 60 + minutes;
+                        
+                        // Se estiver no horário exato (com margem de 1 minuto)
+                        if (Math.abs(activityTime - currentTime) <= 1) {
+                            console.log(`⏰ Hora da atividade: ${activity.name}`);
+                        }
+                    }
                 });
             }
         }
-
-        // Esconde a notificação
-        function hideNotification() {
-            notification.classList.remove('active');
-            stopAutoReminder();
-            currentActivity = null;
-        }
-
-        // Inicializa a aplicação quando a página carrega
-        document.addEventListener('DOMContentLoaded', init);
+        
+        // ========== INICIALIZAÇÃO GLOBAL ==========
+        let system;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            system = new LembreteSystem();
+            
+            // Iniciar automaticamente após 2 segundos
+            setTimeout(() => {
+                system.startSystem();
+            }, 2000);
+            
+            // Tornar o sistema disponível globalmente
+            window.system = system;
+            
+            console.log('🎉 Sistema de Lembretes pronto para uso!');
+        });
+        
+        // ========== FUNÇÕES GLOBAIS (para os botões) ==========
+        function startSystem() { system.startSystem(); }
+        function testNotification() { system.testNotification(); }
+        function resetAll() { system.resetAll(); }
+        function toggleOverlayMode() { system.toggleOverlayMode(); }
+        function completeNotification() { system.completeNotification(); }
+        function snoozeNotification() { system.snoozeNotification(); }
     </script>
 </body>
 </html>
